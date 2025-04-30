@@ -1,16 +1,21 @@
+/* eslint-disable react/prop-types */
 import './ProductList.css';
-import { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { plantsArray } from './plants';
 import { addItem } from './CartSlice';
 import CartItem from './CartItem';
 
 function ProductList({ onHomeClick }) {
   const [showCart, setShowCart] = useState(false);
-  const [showPlants, setShowPlants] = useState(false); // State to control the visibility of the About Us page
   const [addedToCart, setAddedToCart] = useState({});
 
   const dispatch = useDispatch();
+  const cartItems = useSelector(state => state.cart.items);
+  const totalCartItems =
+    cartItems.length > 0
+      ? cartItems.reduce((total, item) => total + item.quantity, 0)
+      : 0;
 
   const styleObj = {
     backgroundColor: '#4CAF50',
@@ -44,7 +49,6 @@ function ProductList({ onHomeClick }) {
   };
   const handlePlantsClick = e => {
     e.preventDefault();
-    setShowPlants(true); // Set showAboutUs to true when "About Us" link is clicked
     setShowCart(false); // Hide the cart when navigating to About Us
   };
 
@@ -80,13 +84,11 @@ function ProductList({ onHomeClick }) {
         </div>
         <div style={styleObjUl}>
           <div>
-            {' '}
             <a href="#" onClick={e => handlePlantsClick(e)} style={styleA}>
               Plants
             </a>
           </div>
           <div>
-            {' '}
             <a href="#" onClick={e => handleCartClick(e)} style={styleA}>
               <h1 className="cart">
                 <svg
@@ -109,6 +111,7 @@ function ProductList({ onHomeClick }) {
                     id="mainIconPathAttribute"
                   ></path>
                 </svg>
+                <p className="cart_quantity_count">{totalCartItems}</p>
               </h1>
             </a>
           </div>
@@ -133,10 +136,15 @@ function ProductList({ onHomeClick }) {
                     <p className="product-price">{plant.cost}</p>
                     <p style={{ fontStyle: 'italic' }}>{plant.description}</p>
                     <button
-                      className="product-button"
+                      className={`product-button ${
+                        addedToCart[plant.name] ? 'added-to-cart' : ''
+                      }`}
                       onClick={() => handleAddToCart(plant)}
+                      disabled={addedToCart[plant.name]}
                     >
-                      Add to Cart
+                      {addedToCart[plant.name]
+                        ? 'Added to Cart'
+                        : 'Add to Cart'}
                     </button>
                   </div>
                 ))}
@@ -145,7 +153,10 @@ function ProductList({ onHomeClick }) {
           ))}
         </div>
       ) : (
-        <CartItem onContinueShopping={handleContinueShopping} />
+        <CartItem
+          onContinueShopping={handleContinueShopping}
+          onSetAddedToCart={setAddedToCart}
+        />
       )}
     </div>
   );
